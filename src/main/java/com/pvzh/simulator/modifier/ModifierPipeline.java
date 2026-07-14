@@ -1,11 +1,14 @@
 package com.pvzh.simulator.modifier;
 
+import com.pvzh.simulator.model.Trait;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
 /**
- * Represents a pipeline of modifiers that dynamically compute an attribute's final value.
+ * Represents a pipeline of modifiers that dynamically compute an attribute's final value,
+ * or aggregate active traits.
  */
 public class ModifierPipeline {
     private final List<Modifier> modifiers = new ArrayList<>();
@@ -29,7 +32,7 @@ public class ModifierPipeline {
     }
 
     /**
-     * Computes the final value of an attribute by passing it through the pipeline.
+     * Computes the final value of a numeric attribute by passing it through the pipeline.
      * @param baseValue The original, unmodified value (e.g., from CardDefinition).
      * @return The final, fully modified value.
      */
@@ -39,5 +42,19 @@ public class ModifierPipeline {
             currentValue = modifier.apply(currentValue);
         }
         return currentValue;
+    }
+
+    /**
+     * Checks if the specified Trait is actively granted by any modifier in this pipeline.
+     * @param trait The trait to check for.
+     * @return true if the trait count is > 0, false otherwise.
+     */
+    public boolean hasActiveTrait(Trait trait) {
+        for (Modifier modifier : modifiers) {
+            if (modifier.grantsTrait(trait)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

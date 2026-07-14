@@ -17,10 +17,16 @@ public class Card {
     // Current health = (BaseHealth modified) - damageTaken
     private int damageTaken = 0;
 
+    // Safety flag for destruction logic queueing
+    private boolean isMarkedForDestruction = false;
+
     // Modifier pipelines for dynamic attributes
     private final ModifierPipeline attackPipeline = new ModifierPipeline();
     private final ModifierPipeline healthPipeline = new ModifierPipeline();
     private final ModifierPipeline costPipeline = new ModifierPipeline();
+
+    // Modifier pipeline for traits granted dynamically (like Area 22's FRENZY)
+    private final ModifierPipeline traitPipeline = new ModifierPipeline();
 
     public Card(CardDefinition definition, Player owner) {
         this.instanceId = UUID.randomUUID().toString();
@@ -63,6 +69,10 @@ public class Card {
     public void takeDamage(int amount) {
         if (amount > 0) {
             this.damageTaken += amount;
+
+            if (getCurrentHealth() <= 0) {
+                this.isMarkedForDestruction = true;
+            }
         }
     }
 
@@ -72,12 +82,23 @@ public class Card {
         }
     }
 
-    public boolean isDestroyed() {
-        // Only fighters can be destroyed by health loss. Tricks and Environments don't have health logic here.
-        if (definition.getType() != CardType.FIGHTER) {
-            return false;
+    public boolean isMarkedForDestruction() {
+        return isMarkedForDestruction;
+    }
+
+    public void markForDestruction() {
+        this.isMarkedForDestruction = true;
+    }
+
+    /**
+     * Dynamically determines if this card has a specific trait.
+     * Checks both the static blueprint and any active modifiers in the trait pipeline.
+     */
+    public boolean hasTrait(Trait trait) {
+        if (definition.getTraits() != null && definition.getTraits().contains(trait)) {
+            return true;
         }
-        return getCurrentHealth() <= 0;
+        return traitPipeline.hasActiveTrait(trait);
     }
 
     public ModifierPipeline getAttackPipeline() {
@@ -90,5 +111,9 @@ public class Card {
 
     public ModifierPipeline getCostPipeline() {
         return costPipeline;
+    }
+
+    public ModifierPipeline getTraitPipeline() {
+        return traitPipeline;
     }
 }
