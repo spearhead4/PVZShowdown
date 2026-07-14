@@ -68,7 +68,6 @@ public class Lane {
         // Check if lane is already occupied by the same faction
         if (card.getOwner().getFaction() == Faction.PLANT && plantFighter != null) {
             // Note: Team-Up logic would require modifying this to hold a List<Card> or primary/secondary fighters.
-            // For now, keeping it simple as 1 fighter per side.
             return false;
         }
         if (card.getOwner().getFaction() == Faction.ZOMBIE && zombieFighter != null) {
@@ -77,7 +76,7 @@ public class Lane {
 
         // Check Amphibious restriction for Water lane
         if (type == LaneType.WATER) {
-            return card.getDefinition().getTraits().contains("Amphibious");
+            return card.hasTrait(Trait.AMPHIBIOUS);
         }
 
         return true;

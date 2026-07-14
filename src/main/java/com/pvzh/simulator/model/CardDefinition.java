@@ -14,13 +14,13 @@ public class CardDefinition {
     private int baseCost;
     private int baseAttack; // 0 for tricks/environments
     private int baseHealth; // 0 for tricks/environments
-    private List<String> traits; // E.g., "Amphibious", "Armored 1", "Bullseye"
+    private List<Trait> traits; // E.g., Trait.AMPHIBIOUS, Trait.BULLSEYE
     private List<String> abilities; // IDs referencing ability logic scripts
 
     public CardDefinition() {
     }
 
-    public CardDefinition(String id, String name, Faction faction, CardType type, int baseCost, int baseAttack, int baseHealth, List<String> traits, List<String> abilities) {
+    public CardDefinition(String id, String name, Faction faction, CardType type, int baseCost, int baseAttack, int baseHealth, List<Trait> traits, List<String> abilities) {
         this.id = id;
         this.name = name;
         this.faction = faction;
@@ -39,6 +39,6 @@ public class CardDefinition {
     public int getBaseCost() { return baseCost; }
     public int getBaseAttack() { return baseAttack; }
     public int getBaseHealth() { return baseHealth; }
-    public List<String> getTraits() { return traits; }
+    public List<Trait> getTraits() { return traits; }
     public List<String> getAbilities() { return abilities; }
 }
