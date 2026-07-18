@@ -1,6 +1,7 @@
 package com.pvzh.simulator.model;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Blueprint for a card, intended to be loaded from external JSON files.
@@ -9,22 +10,31 @@ import java.util.List;
 public class CardDefinition {
     private String id;
     private String name;
-    private Faction faction;
-    private CardType type;
+
+    // Strict Card Categorization
+    private Side side; // PLANT or ZOMBIE
+    private CardType type; // FIGHTER, TRICK, ENVIRONMENT
+    private Set<Tribe> tribes; // E.g., PEA, GARGANTUAR
+    private HeroClass heroClass; // The class this card belongs to
+
     private int baseCost;
     private int baseAttack; // 0 for tricks/environments
     private int baseHealth; // 0 for tricks/environments
+
     private List<Trait> traits; // E.g., Trait.AMPHIBIOUS, Trait.BULLSEYE
     private List<String> abilities; // IDs referencing ability logic scripts
 
     public CardDefinition() {
     }
 
-    public CardDefinition(String id, String name, Faction faction, CardType type, int baseCost, int baseAttack, int baseHealth, List<Trait> traits, List<String> abilities) {
+    public CardDefinition(String id, String name, Side side, CardType type, Set<Tribe> tribes, HeroClass heroClass,
+                          int baseCost, int baseAttack, int baseHealth, List<Trait> traits, List<String> abilities) {
         this.id = id;
         this.name = name;
-        this.faction = faction;
+        this.side = side;
         this.type = type;
+        this.tribes = tribes;
+        this.heroClass = heroClass;
         this.baseCost = baseCost;
         this.baseAttack = baseAttack;
         this.baseHealth = baseHealth;
@@ -34,8 +44,11 @@ public class CardDefinition {
 
     public String getId() { return id; }
     public String getName() { return name; }
-    public Faction getFaction() { return faction; }
+    public Side getSide() { return side; }
     public CardType getType() { return type; }
+    public Set<Tribe> getTribes() { return tribes; }
+    public HeroClass getHeroClass() { return heroClass; }
+
     public int getBaseCost() { return baseCost; }
     public int getBaseAttack() { return baseAttack; }
     public int getBaseHealth() { return baseHealth; }

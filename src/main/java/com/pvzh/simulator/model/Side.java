@@ -1,6 +1,6 @@
 package com.pvzh.simulator.model;
 
-public enum Faction {
+public enum Side {
     PLANT,
     ZOMBIE
 }

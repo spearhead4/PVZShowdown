@@ -8,7 +8,7 @@ import java.util.List;
  * Manages the Hero, their Hand, and resources.
  */
 public class Player {
-    private final Faction faction;
+    private final Side side;
     private final Hero hero;
 
     private final List<Card> hand = new ArrayList<>();
@@ -16,15 +16,15 @@ public class Player {
     private int maxResources; // Suns for plants, Brains for zombies
     private int currentResources;
 
-    public Player(Faction faction, Hero hero) {
-        this.faction = faction;
+    public Player(Side side, Hero hero) {
+        this.side = side;
         this.hero = hero;
         this.maxResources = 0;
         this.currentResources = 0;
     }
 
-    public Faction getFaction() {
-        return faction;
+    public Side getSide() {
+        return side;
     }
 
     public Hero getHero() {

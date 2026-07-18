@@ -65,12 +65,12 @@ public class Lane {
             return false;
         }
 
-        // Check if lane is already occupied by the same faction
-        if (card.getOwner().getFaction() == Faction.PLANT && plantFighter != null) {
+        // Check if lane is already occupied by the same side
+        if (card.getOwner().getSide() == Side.PLANT && plantFighter != null) {
             // Note: Team-Up logic would require modifying this to hold a List<Card> or primary/secondary fighters.
             return false;
         }
-        if (card.getOwner().getFaction() == Faction.ZOMBIE && zombieFighter != null) {
+        if (card.getOwner().getSide() == Side.ZOMBIE && zombieFighter != null) {
             return false;
         }
 

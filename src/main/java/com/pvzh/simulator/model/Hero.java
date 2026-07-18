@@ -9,7 +9,7 @@ import java.util.function.Consumer;
  * Represents a Player's Hero, their health, block meter, and superpower pool.
  */
 public class Hero {
-    private final Faction faction;
+    private final Side side;
     private final List<HeroClass> classes;
     private int maxHealth;
     private int currentHealth;
@@ -20,8 +20,8 @@ public class Hero {
 
     private final Random random = new Random();
 
-    public Hero(Faction faction, List<HeroClass> classes, List<CardDefinition> superpowerPool) {
-        this.faction = faction;
+    public Hero(Side side, List<HeroClass> classes, List<CardDefinition> superpowerPool) {
+        this.side = side;
         this.classes = new ArrayList<>(classes);
         this.maxHealth = 20;
         this.currentHealth = 20;
@@ -29,8 +29,8 @@ public class Hero {
         this.superpowerPool = new ArrayList<>(superpowerPool);
     }
 
-    public Faction getFaction() {
-        return faction;
+    public Side getSide() {
+        return side;
     }
 
     public List<HeroClass> getClasses() {
