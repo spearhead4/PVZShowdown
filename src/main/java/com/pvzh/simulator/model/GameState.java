@@ -15,18 +15,14 @@ public class GameState {
     private final List<Lane> lanes;
     private final PhaseManager phaseManager;
 
-    // We would also have hands and decks here.
-    private final List<Card> plantHand = new ArrayList<>();
-    private final List<Card> zombieHand = new ArrayList<>();
-
     // Note for Information Hiding ("Lie by Omission"):
     // When serializing this GameState to JSON for the client, you MUST NOT
     // serialize the opponent's hand or deck order.
-    // E.g., The Plant player's view should only contain `plantHand` and the size of `zombieHand`.
+    // E.g., The Plant player's view should only contain `plantPlayer.getHand()` and the size of `zombiePlayer.getHand()`.
 
-    public GameState() {
-        this.plantPlayer = new Player(Faction.PLANT);
-        this.zombiePlayer = new Player(Faction.ZOMBIE);
+    public GameState(Player plantPlayer, Player zombiePlayer) {
+        this.plantPlayer = plantPlayer;
+        this.zombiePlayer = zombiePlayer;
         this.phaseManager = new PhaseManager();
         this.lanes = new ArrayList<>(5);
 
@@ -59,13 +55,5 @@ public class GameState {
 
     public PhaseManager getPhaseManager() {
         return phaseManager;
-    }
-
-    public List<Card> getPlantHand() {
-        return plantHand;
-    }
-
-    public List<Card> getZombieHand() {
-        return zombieHand;
     }
 }
