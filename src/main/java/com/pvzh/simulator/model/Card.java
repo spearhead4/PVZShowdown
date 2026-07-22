@@ -13,6 +13,9 @@ public class Card {
     private final CardDefinition definition; // Static blueprint
     private final Player owner;
 
+    // State management
+    private CardState state = CardState.REVEALED;
+
     // We maintain a damage counter instead of mutating base health.
     // Current health = (BaseHealth modified) - damageTaken
     private int damageTaken = 0;
@@ -25,13 +28,17 @@ public class Card {
     private final ModifierPipeline healthPipeline = new ModifierPipeline();
     private final ModifierPipeline costPipeline = new ModifierPipeline();
 
-    // Modifier pipeline for traits granted dynamically (like Area 22's FRENZY)
+    // Modifier pipeline for traits granted dynamically (like Area 22's FRENZY or persistent transformation traits)
     private final ModifierPipeline traitPipeline = new ModifierPipeline();
 
     public Card(CardDefinition definition, Player owner) {
         this.instanceId = UUID.randomUUID().toString();
         this.definition = definition;
         this.owner = owner;
+
+        // If played from hand and has Gravestone trait, it should start in GRAVESTONE state,
+        // but typically that logic is handled during the "Play" action.
+        // We'll leave it as REVEALED by default and let the Play logic handle it.
     }
 
     public String getInstanceId() {
@@ -44,6 +51,14 @@ public class Card {
 
     public Player getOwner() {
         return owner;
+    }
+
+    public CardState getState() {
+        return state;
+    }
+
+    public void setState(CardState state) {
+        this.state = state;
     }
 
     // Dynamic Getters
@@ -70,6 +85,11 @@ public class Card {
      * Applies damage to this card, reducing the incoming damage by ARMORED value.
      */
     public void takeDamage(int amount, Card attacker) {
+        // Gravestones cannot be attacked/take combat damage normally
+        if (this.state == CardState.GRAVESTONE) {
+            return;
+        }
+
         int armor = getTraitValue(Trait.ARMORED);
         int finalDamage = Math.max(0, amount - armor);
 

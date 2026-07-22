@@ -28,7 +28,7 @@ public class PhaseManager {
      */
     public void advancePhase(EventDispatcher dispatcher) {
         if (dispatcher != null) {
-            dispatcher.triggerPhaseEnd(currentPhase);
+            dispatcher.triggerPhaseEnd(currentPhase, turnNumber);
         }
 
         switch (currentPhase) {
@@ -37,6 +37,10 @@ public class PhaseManager {
                 break;
             case PLANT_PLAY:
                 currentPhase = Phase.ZOMBIE_TRICKS;
+                // Transitioning to Zombie Tricks -> Unveil Gravestones
+                if (dispatcher != null) {
+                    dispatcher.unveilGravestones();
+                }
                 break;
             case ZOMBIE_TRICKS:
                 currentPhase = Phase.FIGHT;
@@ -48,7 +52,7 @@ public class PhaseManager {
         }
 
         if (dispatcher != null) {
-            dispatcher.triggerPhaseStart(currentPhase);
+            dispatcher.triggerPhaseStart(currentPhase, turnNumber);
         }
     }
 

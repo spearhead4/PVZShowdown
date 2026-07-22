@@ -1,6 +1,12 @@
 package com.pvzh.simulator.engine;
 
+import com.pvzh.simulator.engine.events.EntityTurnEndEvent;
+import com.pvzh.simulator.engine.events.EntityTurnStartEvent;
+import com.pvzh.simulator.engine.events.TurnEndEvent;
+import com.pvzh.simulator.engine.events.TurnStartEvent;
+import com.pvzh.simulator.engine.events.UnveilEvent;
 import com.pvzh.simulator.model.Card;
+import com.pvzh.simulator.model.CardState;
 import com.pvzh.simulator.model.GameState;
 import com.pvzh.simulator.model.Lane;
 import com.pvzh.simulator.model.Phase;
@@ -10,13 +16,20 @@ import java.util.List;
 import java.util.function.Consumer;
 
 /**
- * Handles universal Left-to-Right, Zombie-First resolution for board events.
+ * Handles universal Left-to-Right, Zombie-First resolution for board events,
+ * and integrates with the EventManager for pub/sub mechanics.
  */
 public class EventDispatcher {
     private final GameState gameState;
+    private final EventManager eventManager;
 
-    public EventDispatcher(GameState gameState) {
+    public EventDispatcher(GameState gameState, EventManager eventManager) {
         this.gameState = gameState;
+        this.eventManager = eventManager;
+    }
+
+    public EventManager getEventManager() {
+        return eventManager;
     }
 
     /**
@@ -26,7 +39,7 @@ public class EventDispatcher {
     public void sweepBoard(Consumer<Card> zombieAction, Consumer<Card> plantAction) {
         for (Lane lane : gameState.getLanes()) {
             if (zombieAction != null) {
-                // To avoid concurrent modification, iterate over a copy if actions can remove entities.
+                // To avoid concurrent modification, iterate over a copy
                 for (Card zombie : new ArrayList<>(lane.getZombieFighters())) {
                     zombieAction.accept(zombie);
                 }
@@ -40,8 +53,43 @@ public class EventDispatcher {
     }
 
     /**
+     * Sweeps both hands, then sweeps the board Left-to-Right, Zombie-First.
+     * Required for "End of Turn" transformation mechanics (e.g., Reincarnation).
+     */
+    public void sweepBoardAndHands(Consumer<Card> zombieAction, Consumer<Card> plantAction) {
+        // Sweep Hands first (order usually doesn't matter for hands, but we can do Zombie Hand then Plant Hand)
+        if (zombieAction != null) {
+            for (Card zombieHandCard : new ArrayList<>(gameState.getZombiePlayer().getHand())) {
+                zombieAction.accept(zombieHandCard);
+            }
+        }
+        if (plantAction != null) {
+            for (Card plantHandCard : new ArrayList<>(gameState.getPlantPlayer().getHand())) {
+                plantAction.accept(plantHandCard);
+            }
+        }
+
+        // Sweep Board
+        sweepBoard(zombieAction, plantAction);
+    }
+
+    /**
+     * Unveils all gravestones on the board. Usually called during the transition to ZOMBIE_TRICKS.
+     */
+    public void unveilGravestones() {
+        sweepBoard(
+            zombie -> {
+                if (zombie.getState() == CardState.GRAVESTONE) {
+                    zombie.setState(CardState.REVEALED);
+                    eventManager.publish(new UnveilEvent(zombie));
+                }
+            },
+            null // Plants do not typically have gravestones, but we could make it universal if a mod requires it
+        );
+    }
+
+    /**
      * Resolves pending destructions across the entire board.
-     * Sweeps Left-to-Right, Zombie-First.
      */
     public void resolveDestructions() {
         sweepBoard(
@@ -72,11 +120,29 @@ public class EventDispatcher {
 
     // Phase Transition Hooks
 
-    public void triggerPhaseStart(Phase phase) {
-        // E.g., Start of Turn effects in Phase.ZOMBIE_PLAY
+    public void triggerPhaseStart(Phase phase, int turnNumber) {
+        if (phase == Phase.ZOMBIE_PLAY) {
+            // Global event for external listeners
+            eventManager.publish(new TurnStartEvent(turnNumber));
+
+            // Sequential left-to-right + hand sweep for cards responding to turn start
+            sweepBoardAndHands(
+                zombie -> eventManager.publish(new EntityTurnStartEvent(zombie, turnNumber)),
+                plant -> eventManager.publish(new EntityTurnStartEvent(plant, turnNumber))
+            );
+        }
     }
 
-    public void triggerPhaseEnd(Phase phase) {
-        // E.g., End of Turn effects at the end of Phase.FIGHT
+    public void triggerPhaseEnd(Phase phase, int turnNumber) {
+        if (phase == Phase.FIGHT) {
+            // Sequential left-to-right + hand sweep for cards responding to turn end (e.g. Reincarnation)
+            sweepBoardAndHands(
+                zombie -> eventManager.publish(new EntityTurnEndEvent(zombie, turnNumber)),
+                plant -> eventManager.publish(new EntityTurnEndEvent(plant, turnNumber))
+            );
+
+            // Global event for external listeners
+            eventManager.publish(new TurnEndEvent(turnNumber));
+        }
     }
 }

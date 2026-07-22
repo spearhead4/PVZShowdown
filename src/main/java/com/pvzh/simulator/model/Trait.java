@@ -18,5 +18,9 @@ public enum Trait {
     OVERSHOOT,
     STRIKETHROUGH,
     TEAM_UP,
-    UNTRICKABLE
+    UNTRICKABLE,
+
+    // Transformation markers
+    REINCARNATION,
+    FIG_LEAP
 }
