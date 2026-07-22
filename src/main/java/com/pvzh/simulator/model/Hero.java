@@ -62,24 +62,23 @@ public class Hero {
     /**
      * Applies damage to the hero, processing Block Meter RNG and logic.
      * @param amount The amount of incoming damage.
-     * @param blockRewardCallback A callback invoked if the hero successfully blocks and is rewarded a superpower.
-     *                            The callback handles adding the card to the player's hand.
+     * @param attacker The card dealing the damage (determines Bullseye). Nullable (e.g. fatigue or direct effect).
+     * @param blockRewardCallback A callback invoked if the hero successfully blocks.
      */
-    public void takeDamage(int amount, Consumer<CardDefinition> blockRewardCallback) {
+    public void takeDamage(int amount, Card attacker, Consumer<CardDefinition> blockRewardCallback) {
         if (amount <= 0) {
             return;
         }
 
-        // Check if block meter is already full (should not happen if it resets, but safety first)
-        if (blockMeter >= 8) {
-            // Cannot block if already full before the hit? Actually in PvZH, it triggers immediately at 8.
-            // If it's somehow stuck at 8, damage goes through unblocked.
-            // In PvZH, if you have 10 cards, you burn the block but meter resets.
-            // So blockMeter should always be < 8 when taking damage.
+        // Bullseye bypasses the Block Meter completely.
+        boolean hasBullseye = attacker != null && attacker.hasTrait(Trait.BULLSEYE);
+
+        if (hasBullseye) {
+            this.currentHealth -= amount;
+            return;
         }
 
         // Step 1: Generate RNG for the Block Meter (1, 2, or 3 charges)
-        // Note: In some scenarios like Bullseye, this step is skipped. Assuming standard damage here.
         int charges = random.nextInt(3) + 1; // Generates 1, 2, or 3
         this.blockMeter += charges;
 

@@ -1,6 +1,8 @@
 package com.pvzh.simulator.model;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -21,14 +23,15 @@ public class CardDefinition {
     private int baseAttack; // 0 for tricks/environments
     private int baseHealth; // 0 for tricks/environments
 
-    private List<Trait> traits; // E.g., Trait.AMPHIBIOUS, Trait.BULLSEYE
+    // Parameterized traits (e.g., ARMORED -> 2)
+    private Map<Trait, Integer> traits;
     private List<String> abilities; // IDs referencing ability logic scripts
 
     public CardDefinition() {
     }
 
     public CardDefinition(String id, String name, Side side, CardType type, Set<Tribe> tribes, HeroClass heroClass,
-                          int baseCost, int baseAttack, int baseHealth, List<Trait> traits, List<String> abilities) {
+                          int baseCost, int baseAttack, int baseHealth, Map<Trait, Integer> traits, List<String> abilities) {
         this.id = id;
         this.name = name;
         this.side = side;
@@ -38,7 +41,7 @@ public class CardDefinition {
         this.baseCost = baseCost;
         this.baseAttack = baseAttack;
         this.baseHealth = baseHealth;
-        this.traits = traits;
+        this.traits = traits != null ? traits : new HashMap<>();
         this.abilities = abilities;
     }
 
@@ -52,6 +55,6 @@ public class CardDefinition {
     public int getBaseCost() { return baseCost; }
     public int getBaseAttack() { return baseAttack; }
     public int getBaseHealth() { return baseHealth; }
-    public List<Trait> getTraits() { return traits; }
+    public Map<Trait, Integer> getTraits() { return traits; }
     public List<String> getAbilities() { return abilities; }
 }

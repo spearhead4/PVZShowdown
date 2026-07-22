@@ -66,9 +66,15 @@ public class Card {
         return Math.max(0, getMaxHealth() - damageTaken);
     }
 
-    public void takeDamage(int amount) {
-        if (amount > 0) {
-            this.damageTaken += amount;
+    /**
+     * Applies damage to this card, reducing the incoming damage by ARMORED value.
+     */
+    public void takeDamage(int amount, Card attacker) {
+        int armor = getTraitValue(Trait.ARMORED);
+        int finalDamage = Math.max(0, amount - armor);
+
+        if (finalDamage > 0) {
+            this.damageTaken += finalDamage;
 
             if (getCurrentHealth() <= 0) {
                 this.isMarkedForDestruction = true;
@@ -91,14 +97,19 @@ public class Card {
     }
 
     /**
-     * Dynamically determines if this card has a specific trait.
-     * Checks both the static blueprint and any active modifiers in the trait pipeline.
+     * Dynamically determines the active value of a specific trait.
+     * Combines the static blueprint value with dynamically granted modifiers.
      */
-    public boolean hasTrait(Trait trait) {
-        if (definition.getTraits() != null && definition.getTraits().contains(trait)) {
-            return true;
+    public int getTraitValue(Trait trait) {
+        int baseValue = 0;
+        if (definition.getTraits() != null && definition.getTraits().containsKey(trait)) {
+            baseValue = definition.getTraits().get(trait);
         }
-        return traitPipeline.hasActiveTrait(trait);
+        return baseValue + traitPipeline.getTraitValue(trait);
+    }
+
+    public boolean hasTrait(Trait trait) {
+        return getTraitValue(trait) > 0;
     }
 
     public ModifierPipeline getAttackPipeline() {

@@ -4,7 +4,7 @@ import com.pvzh.simulator.model.Trait;
 
 /**
  * A modifier that can alter an attribute (like attack or health) dynamically,
- * or grant specific Traits (like FRENZY).
+ * or grant specific Traits (like FRENZY) with a numeric value.
  * Priority determines the order in which modifiers are applied:
  * - Priority 10: Base stat overrides (e.g., "Attack becomes 3")
  * - Priority 20: Multipliers or specific scales.
@@ -21,10 +21,11 @@ public interface Modifier {
     }
 
     /**
-     * @return true if this modifier explicitly grants the specified Trait, false otherwise.
+     * @return the value granted for this trait (e.g. 1 for FRENZY, 2 for ARMORED).
+     * Return 0 if the trait is not granted.
      */
-    default boolean grantsTrait(Trait trait) {
-        return false;
+    default int getTraitValue(Trait trait) {
+        return 0;
     }
 
     /**
