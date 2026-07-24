@@ -1,15 +1,19 @@
 package com.pvzh.simulator.model;
 
+import com.pvzh.simulator.engine.EventManager;
+import com.pvzh.simulator.engine.events.GameOverEvent;
+
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Represents a Player in the game.
- * Manages the Hero, their Hand, and resources.
+ * Manages the Hero, their Hand, resources, and Deck interactions.
  */
 public class Player {
     private final Side side;
     private final Hero hero;
+    private Deck deck;
 
     private final List<Card> hand = new ArrayList<>();
 
@@ -29,6 +33,14 @@ public class Player {
 
     public Hero getHero() {
         return hero;
+    }
+
+    public void setDeck(Deck deck) {
+        this.deck = deck;
+    }
+
+    public Deck getDeck() {
+        return deck;
     }
 
     public int getMaxResources() {
@@ -67,6 +79,23 @@ public class Player {
                 return true;
             }
         }
+    }
+
+    /**
+     * Attempts to draw a card from the deck.
+     * Fires a GameOverEvent if the deck is empty.
+     */
+    public void drawCard(EventManager eventManager) {
+        if (deck == null) return;
+
+        CardDefinition def = deck.draw();
+        if (def == null) {
+            eventManager.publish(new GameOverEvent(this, "Deckout"));
+            return;
+        }
+
+        Card card = new Card(def, this);
+        addCardToHand(card, CardSource.DRAW);
     }
 
     /**

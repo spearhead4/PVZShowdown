@@ -23,11 +23,11 @@ public class Deck {
 
     /**
      * Draws the top card from the deck.
-     * @return The CardDefinition, or null if the deck is empty.
+     * @return The CardDefinition, or null if the deck is empty (indicating a Deckout condition).
      */
     public CardDefinition draw() {
         if (cards.isEmpty()) {
-            return null;
+            return null; // Deckout
         }
         return cards.remove(0); // Top of the deck is index 0
     }

@@ -15,6 +15,7 @@ public class Card {
 
     // State management
     private CardState state = CardState.REVEALED;
+    private boolean isFrozen = false;
 
     // We maintain a damage counter instead of mutating base health.
     // Current health = (BaseHealth modified) - damageTaken
@@ -35,10 +36,6 @@ public class Card {
         this.instanceId = UUID.randomUUID().toString();
         this.definition = definition;
         this.owner = owner;
-
-        // If played from hand and has Gravestone trait, it should start in GRAVESTONE state,
-        // but typically that logic is handled during the "Play" action.
-        // We'll leave it as REVEALED by default and let the Play logic handle it.
     }
 
     public String getInstanceId() {
@@ -59,6 +56,14 @@ public class Card {
 
     public void setState(CardState state) {
         this.state = state;
+    }
+
+    public boolean isFrozen() {
+        return isFrozen;
+    }
+
+    public void setFrozen(boolean frozen) {
+        this.isFrozen = frozen;
     }
 
     // Dynamic Getters
@@ -82,11 +87,21 @@ public class Card {
     }
 
     /**
-     * Applies damage to this card, reducing the incoming damage by ARMORED value.
+     * Applies damage to this card.
+     * Handles Armor reduction, Invulnerability, and Deadly.
      */
     public void takeDamage(int amount, Card attacker) {
+        if (amount <= 0 || isMarkedForDestruction) {
+            return;
+        }
+
         // Gravestones cannot be attacked/take combat damage normally
         if (this.state == CardState.GRAVESTONE) {
+            return;
+        }
+
+        // Invulnerable takes 0 damage
+        if (hasTrait(Trait.INVULNERABLE)) {
             return;
         }
 
@@ -96,6 +111,12 @@ public class Card {
         if (finalDamage > 0) {
             this.damageTaken += finalDamage;
 
+            // Check Deadly
+            if (attacker != null && attacker.hasTrait(Trait.DEADLY)) {
+                this.isMarkedForDestruction = true;
+            }
+
+            // Normal destruction
             if (getCurrentHealth() <= 0) {
                 this.isMarkedForDestruction = true;
             }
