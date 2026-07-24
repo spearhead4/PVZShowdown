@@ -20,6 +20,12 @@ public enum Trait {
     TEAM_UP,
     UNTRICKABLE,
 
+    // Combat / Modifiers
+    ATTACK_WITH_HEALTH,
+    INVULNERABLE,
+    SPLASH_DAMAGE,
+    ANTI_BONUS_ATTACK,
+
     // Transformation markers
     REINCARNATION,
     FIG_LEAP
