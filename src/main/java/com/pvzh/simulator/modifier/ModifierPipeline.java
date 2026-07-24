@@ -45,16 +45,15 @@ public class ModifierPipeline {
     }
 
     /**
-     * Checks if the specified Trait is actively granted by any modifier in this pipeline.
-     * @param trait The trait to check for.
-     * @return true if the trait count is > 0, false otherwise.
+     * Aggregates the numeric value of a granted Trait.
+     * @param trait The trait to evaluate.
+     * @return The total dynamically granted value for this trait.
      */
-    public boolean hasActiveTrait(Trait trait) {
+    public int getTraitValue(Trait trait) {
+        int value = 0;
         for (Modifier modifier : modifiers) {
-            if (modifier.grantsTrait(trait)) {
-                return true;
-            }
+            value += modifier.getTraitValue(trait);
         }
-        return false;
+        return value;
     }
 }

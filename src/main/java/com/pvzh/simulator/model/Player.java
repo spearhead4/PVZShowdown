@@ -8,7 +8,7 @@ import java.util.List;
  * Manages the Hero, their Hand, and resources.
  */
 public class Player {
-    private final Faction faction;
+    private final Side side;
     private final Hero hero;
 
     private final List<Card> hand = new ArrayList<>();
@@ -16,15 +16,15 @@ public class Player {
     private int maxResources; // Suns for plants, Brains for zombies
     private int currentResources;
 
-    public Player(Faction faction, Hero hero) {
-        this.faction = faction;
+    public Player(Side side, Hero hero) {
+        this.side = side;
         this.hero = hero;
         this.maxResources = 0;
         this.currentResources = 0;
     }
 
-    public Faction getFaction() {
-        return faction;
+    public Side getSide() {
+        return side;
     }
 
     public Hero getHero() {
@@ -55,22 +55,12 @@ public class Player {
         return hand;
     }
 
-    /**
-     * Attempts to add a card to the player's hand, respecting the 10-card limit
-     * based on the source of the card.
-     * @param card The card to add.
-     * @param source How the card was acquired.
-     * @return true if the card was successfully added, false if it was burned due to hand size limit.
-     */
     public boolean addCardToHand(Card card, CardSource source) {
         if (source == CardSource.BOUNCE) {
-            // BOUNCE bypasses the hand size limit
             hand.add(card);
             return true;
         } else {
-            // DRAW, CONJURE, BLOCK_REWARD are subject to the 10-card limit
             if (hand.size() >= 10) {
-                // The card is burned
                 return false;
             } else {
                 hand.add(card);
@@ -81,15 +71,12 @@ public class Player {
 
     /**
      * Helper method to process damage directed at the Player.
-     * Handles the Block Meter interception and properly adds the superpower reward to the hand.
+     * Passes the attacker to handle Bullseye and triggers block rewards.
      */
-    public void takeDamage(int amount) {
-        // Standard damage (can be blocked)
-        hero.takeDamage(amount, powerRewardDefinition -> {
-            // Callback invoked if blocked and superpower is granted
+    public void takeDamage(int amount, Card attacker) {
+        hero.takeDamage(amount, attacker, powerRewardDefinition -> {
             Card powerCard = new Card(powerRewardDefinition, this);
-            boolean added = addCardToHand(powerCard, CardSource.BLOCK_REWARD);
-            // If added == false, the superpower was burned due to a full hand.
+            addCardToHand(powerCard, CardSource.BLOCK_REWARD);
         });
     }
 }

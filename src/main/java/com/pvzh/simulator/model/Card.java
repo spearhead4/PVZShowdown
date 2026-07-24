@@ -13,6 +13,9 @@ public class Card {
     private final CardDefinition definition; // Static blueprint
     private final Player owner;
 
+    // State management
+    private CardState state = CardState.REVEALED;
+
     // We maintain a damage counter instead of mutating base health.
     // Current health = (BaseHealth modified) - damageTaken
     private int damageTaken = 0;
@@ -25,13 +28,17 @@ public class Card {
     private final ModifierPipeline healthPipeline = new ModifierPipeline();
     private final ModifierPipeline costPipeline = new ModifierPipeline();
 
-    // Modifier pipeline for traits granted dynamically (like Area 22's FRENZY)
+    // Modifier pipeline for traits granted dynamically (like Area 22's FRENZY or persistent transformation traits)
     private final ModifierPipeline traitPipeline = new ModifierPipeline();
 
     public Card(CardDefinition definition, Player owner) {
         this.instanceId = UUID.randomUUID().toString();
         this.definition = definition;
         this.owner = owner;
+
+        // If played from hand and has Gravestone trait, it should start in GRAVESTONE state,
+        // but typically that logic is handled during the "Play" action.
+        // We'll leave it as REVEALED by default and let the Play logic handle it.
     }
 
     public String getInstanceId() {
@@ -44,6 +51,14 @@ public class Card {
 
     public Player getOwner() {
         return owner;
+    }
+
+    public CardState getState() {
+        return state;
+    }
+
+    public void setState(CardState state) {
+        this.state = state;
     }
 
     // Dynamic Getters
@@ -66,9 +81,20 @@ public class Card {
         return Math.max(0, getMaxHealth() - damageTaken);
     }
 
-    public void takeDamage(int amount) {
-        if (amount > 0) {
-            this.damageTaken += amount;
+    /**
+     * Applies damage to this card, reducing the incoming damage by ARMORED value.
+     */
+    public void takeDamage(int amount, Card attacker) {
+        // Gravestones cannot be attacked/take combat damage normally
+        if (this.state == CardState.GRAVESTONE) {
+            return;
+        }
+
+        int armor = getTraitValue(Trait.ARMORED);
+        int finalDamage = Math.max(0, amount - armor);
+
+        if (finalDamage > 0) {
+            this.damageTaken += finalDamage;
 
             if (getCurrentHealth() <= 0) {
                 this.isMarkedForDestruction = true;
@@ -91,14 +117,19 @@ public class Card {
     }
 
     /**
-     * Dynamically determines if this card has a specific trait.
-     * Checks both the static blueprint and any active modifiers in the trait pipeline.
+     * Dynamically determines the active value of a specific trait.
+     * Combines the static blueprint value with dynamically granted modifiers.
      */
-    public boolean hasTrait(Trait trait) {
-        if (definition.getTraits() != null && definition.getTraits().contains(trait)) {
-            return true;
+    public int getTraitValue(Trait trait) {
+        int baseValue = 0;
+        if (definition.getTraits() != null && definition.getTraits().containsKey(trait)) {
+            baseValue = definition.getTraits().get(trait);
         }
-        return traitPipeline.hasActiveTrait(trait);
+        return baseValue + traitPipeline.getTraitValue(trait);
+    }
+
+    public boolean hasTrait(Trait trait) {
+        return getTraitValue(trait) > 0;
     }
 
     public ModifierPipeline getAttackPipeline() {

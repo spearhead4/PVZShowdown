@@ -2,12 +2,12 @@ package com.pvzh.simulator.model;
 
 /**
  * Standard PvZ Heroes traits (keywords).
+ * Modding Rule: All traits are universal and parameterized.
  */
 public enum Trait {
     AMPHIBIOUS,
-    ARMORED_1,
-    ARMORED_2,
-    ANTI_HERO_1, // We can define these dynamically or generically, but enums are fine for now.
+    ARMORED,
+    ANTI_HERO,
     BULLSEYE,
     DEADLY,
     DOUBLE_STRIKE,
@@ -15,8 +15,12 @@ public enum Trait {
     FROZEN,
     GRAVESTONE,
     HUNT,
-    OVERSHOOT_2, // Can be genericized later
+    OVERSHOOT,
     STRIKETHROUGH,
     TEAM_UP,
-    UNTRICKABLE
+    UNTRICKABLE,
+
+    // Transformation markers
+    REINCARNATION,
+    FIG_LEAP
 }
